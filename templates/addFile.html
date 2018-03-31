@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>FYP</title>
+    <style type="text/css" media="screen">
+      #editor {
+       height: 200px;
+      }
+
+      .well {
+        margin: 60px 0;
+      }
+    </style>
+   
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
+    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+    
+    <script src="../static/js/jquery-1.11.2.js"></script>
+
+  <script src="../static/js/jquery.ui.widget.js"></script>
+  
+   
+  </head>
+
+  <body>
+
+  <div class="container">
+      <div class="header">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation"><a href="/showDashboard">Dasboard</a></li>
+       <li role="presentation"><a href="/userHome">Home</a></li>
+      <li role="presentation" class="active"><a href="#">Add Item</a></li>
+            <li role="presentation" ><a href="/logout">Logout</a></li>
+          </ul>
+        </nav>
+        <h3 class="text-muted">Final Year Project</h3>
+      </div>
+
+<div class="well">
+      <form role="form" method="post" action="/addFile">
+        <legend>Add Your file</legend>
+       
+      <div class="field">
+        <input type="text" name="filename" class="form-control" id="filename" placeholder="Filename (e.g. helloworld.py)">
+      </div>
+       <div class="panel-body">
+            <div id="editor">#!/usr/local/bin/python</div>
+        </div>
+        <div class="form-group">
+          <label>Mark this as private and not visible to others.</label><br/>
+          <input name="private" type="checkbox"> Mark as Private <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+     </div>
+
+      <div class="field">
+        <button class="btn btn-primary" type="submit">Save File</button>
+        <div id="messages"></div>
+      </div>
+    </form>
+      </div>
+
+    <script src="../ace/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/clouds");
+    editor.getSession().setMode("ace/mode/python");
+</script>
+      
+
+     
+
+    </div>
+  </body>
+</html>

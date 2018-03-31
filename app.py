@@ -9,7 +9,7 @@ app.secret_key = 'why would I tell you my secret key?'
 # MySQL configurations
 app.config['MYSQL_DATABASE_USER'] = 'kieta'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'kieta'
-app.config['MYSQL_DATABASE_DB'] = 'Users'
+app.config['MYSQL_DATABASE_DB'] = 'fyproj'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 
@@ -29,12 +29,49 @@ def showSignin():
     else:
         return render_template('signin.html')
 
+@app.route('/showAddFile')
+def showAddFile():
+    return render_template('addFile.html')
+
 @app.route('/userHome')
 def userHome():
     if session.get('user'):
-        return render_template('homepage.html')
+        return render_template('userHome.html')
     else:
         return render_template('error.html',error = 'Unauthorized Access')
+        
+@app.route('/getAllFiles')
+def getAllWishes():
+    try:
+        if session.get('user'):
+            
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_GetAllFiles')
+            result = cursor.fetchall()
+        
+
+        
+            file_dict = []
+            for file in result:
+                file_dict = {
+                        'Id': file[0],
+                        'Title': file[1],
+                        'Description': file[2],
+                        'FilePath': file[3]}
+                file_dict.append(file_dict)       
+
+           
+
+            return json.dumps(file_dict)
+        else:
+            return render_template('error.html', error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html',error = str(e))
+    
+@app.route('/showDashboard')
+def showDashboard():
+    return render_template('dashboard.html')
 
 @app.route('/validateLogin',methods=['POST'])
 def validateLogin():

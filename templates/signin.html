@@ -1,16 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Python Flask Bucket List App</title>
+    <title>FYP</title>
 
    
     <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
     <link href="../static/css/signup.css" rel="stylesheet">
     <script src="../static/js/jquery-1.11.2.js"></script>
     <script src="../static/js/signIn.js"></script>
-   
+   <style type="text/css">
+      body {
+        padding-top: 20px;
+        padding-bottom: 40px;
+      }
+      .well {
+        margin: 60px 0;
+        text-align: center;
+      }
+      .well legend{
+        
+        text-align: left;
+      }
+    </style>
   </head>
 
   <body>
@@ -24,11 +37,11 @@
             <li role="presentation" ><a href="/showSignUp">Sign Up</a></li>
           </ul>
         </nav>
-        <h3 class="text-muted">Fianl Year Project</h3>
+        <h3 class="text-muted">Final Year Project</h3>
       </div>
 
-      <div class="jumbotron">
-        <h1>Code Sharing App</h1>
+      <div class="well">
+        <legend>Code Sharing App</legend>
         <form class="form-signin" action="/validateLogin" method="post">
         <label for="inputEmail" class="sr-only">Email address</label>
         <input type="email" name="inputEmail" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
@@ -38,13 +51,6 @@
         <button id="btnSignIn" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
       </form>
       </div>
-
-      
-
-      <footer class="footer">
-        <p>&copy; Company 2018</p>
-      </footer>
-
     </div>
   </body>
 </html>
