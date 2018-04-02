@@ -18,7 +18,7 @@
 		$(function(){
 			    $.ajax({
         			url: '/getAllFiles',
-				type: 'GET',
+					type: 'GET',
 			        success:function(response) {
 					console.log(response);
 					var data = JSON.parse(response);
@@ -59,35 +59,17 @@
 		function CreateThumb(id,title,desc,filepath,like,hasLiked){
 			var mainDiv = $('<div>').attr('class','col-sm-4 col-md-4');
 			var thumbNail = $('<div>').attr('class','thumbnail');
-			var img = $('<img>').attr({'src':filepath,'data-holder-rendered':true,'style':'height: 150px; width: 150px; display: block'});
 			var caption = $('<div>').attr('class','caption');
 			var title = $('<h3>').text(title);
 			var desc = $('<p>').text(desc);
 			
 
 			var p = $('<p>');
-			var btn = $('<button>').attr({'id':'btn_'+id,'type':'button','class':'btn btn-danger btn-sm'});
-			var span = $('<span>').attr({'class':'glyphicon glyphicon-thumbs-up','aria-hidden':'true'});
-			
-			var likeSpan = $('<span>').attr({'aria-hidden':'true','id':'span_'+id});
-
-			if(hasLiked == "1"){
-				likeSpan.html('&nbsp;You & '+ (Number(like)-1) + ' Others');
-			}
-			else{
-				likeSpan.html('&nbsp;'+ like + ' like(s)');
-			}
-			
-			
-			p.append(btn.append(span));
-			p.append(likeSpan);
-			
 			
 			caption.append(title);
 			caption.append(desc);
 			caption.append(p);
 
-			thumbNail.append(img);
 			thumbNail.append(caption);
 			mainDiv.append(thumbNail);
 			return mainDiv;

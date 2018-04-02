@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Python Flask Bucket List App</title>
+    <title>FYP</title>
 
   
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
@@ -36,39 +36,29 @@
     </style>
 	<script src="../static/js/jquery.ui.widget.js"></script>
 	
-	<script type="text/javascript" src="../static/js/jquery.fileupload.js"></script>
-	<script type="text/javascript" src="../static/js/jquery.fileupload-process.js"></script>
-	<script type="text/javascript" src="../static/js/jquery.fileupload-ui.js"></script>
+	<style type="text/css">
+      body {
+        padding-top: 20px;
+        padding-bottom: 40px;
+      }
+      .well {
+        margin: 60px 0;
+        text-align: center;
+      }
+      .well legend{
+        
+        text-align: left;
+      }
+  </style>
 	
 	    
-        <script>
-		$(function(){
-			    $('#fileupload').fileupload({
-        			url: 'upload',
-        			dataType: 'json',
-        			add: function (e, data) {
-        				data.submit();
-        			},
-			        success:function(response,status) {
-					console.log(response.filename);
-					var filePath = 'static/Uploads/' + response.filename;
-					$('#imgUpload').attr('src',filePath);
-					$('#filePath').val(filePath);
-			        	console.log('success');
-			        },
-			        error:function(error){
-			        	console.log(error);
-			        }
-    			});
-		})
-	</script>
  <script>
 	$(function(){
 		
-		GetWishes(1);
+		GetFiles(1);
 		$('#btnUpdate').click(function(){
 			$.ajax({
-			url : '/updateWish',
+			url : '/updateFile',
 			data : {title:$('#editTitle').val(),description:$('#editDescription').val(),id:localStorage.getItem('editId'),filePath:$('#imgUpload').attr('src'),isPrivate:$('#chkPrivate').is(':checked')?1:0,isDone:$('#chkDone').is(':checked')?1:0},
 			type : 'POST',
 			success: function(res){
@@ -76,7 +66,7 @@
 
 			$('#editModal').modal('hide');
 							    
-				GetWishes(1);
+				GetFiles(1);
 				
 				
 
@@ -93,11 +83,11 @@
 		});
 	});
 
-	function GetWishes(_page){
+	function GetFiles(_page){
 		
 		var _offset = (_page - 1) * 2;
 		$.ajax({
-			url : '/getWish',
+			url : '/getFile',
 			type : 'POST',
 			data : {offset:_offset},
 			success: function(res){
@@ -107,12 +97,12 @@
 				
 				var itemsPerPage = 5;
 				
-				var wishObj = JSON.parse(res);
+				var fileObj = JSON.parse(res);
 				
 				$('#ulist').empty();
-				$('#listTemplate').tmpl(wishObj[0]).appendTo('#ulist');
+				$('#listTemplate').tmpl(fileObj[0]).appendTo('#ulist');
 
-				var total = wishObj[1]['total'];
+				var total = fileObj[1]['total'];
 				var pageCount = total/itemsPerPage;
 				var pageRem = total%itemsPerPage;
 				if(pageRem !=0 ){
@@ -135,7 +125,7 @@
 				$(aPrev).click(function(){
 					$('#hdnStart').val(Number(pageStart) - 5);
 					$('#hdnEnd').val(Number(pageStart) - 5 + 4);
-					GetWishes(Number(pageStart) - 5);
+					GetFiles(Number(pageStart) - 5);
 				});
 
 				var prevLink = $('<li/>').append(aPrev);
@@ -155,7 +145,7 @@
 					
 					$(aPage).click(function(i){
 						return function(){
-							GetWishes(i);
+							GetFiles(i);
 						}
 					}(i));
 					var page = $('<li/>').append(aPage);
@@ -173,7 +163,7 @@
 					.append($('<span/>').attr('aria-hidden','true').html('&raquo;').click(function(){
 							$('#hdnStart').val(Number(pageStart) + 5);
 							$('#hdnEnd').val(Number(pageStart) + 5 + 4);
-							GetWishes(Number(pageStart) + 5);
+							GetFiles(Number(pageStart) + 5);
 						
 					})));
 					$('.pagination').append(nextLink);
@@ -198,14 +188,14 @@
 
 	function Delete(){
 		$.ajax({
-			url : '/deleteWish',
+			url : '/deleteFil',
 			data : {id:localStorage.getItem('deleteId')},
 			type : 'POST',
 			success: function(res){
 				var result = JSON.parse(res);
 				if(result.status == 'OK'){
 					$('#deleteModal').modal('hide');
-					GetWishes();
+					GetFiles();
 				}
 				else{
 					alert(result.status);	
@@ -220,7 +210,7 @@
 	function Edit(elm){
 		localStorage.setItem('editId',$(elm).attr('data-id'));
 		$.ajax({
-			url : '/getWishById',
+			url : '/getFileById',
 			data : {id:$(elm).attr('data-id')},
 			type : 'POST',
 			success: function(res){
@@ -271,16 +261,17 @@
           <ul class="nav nav-pills pull-right">
 	     <li role="presentation"><a href="/showDashboard">Dasboard</a></li>
              <li role="presentation" class="active"><a href="/userHome">Home</a></li>
-	    <li role="presentation"><a href="/showAddWish">Add Wish</a></li>
+	    <li role="presentation"><a href="/showAddFile">Add File</a></li>
             <li role="presentation" ><a href="/logout">Logout</a></li>
           </ul>
         </nav>
-        <h3 class="text-muted">Python Flask App</h3>
+        <h3 class="text-muted">Final Year Project</h3>
       </div>
 
      
         <script id="listTemplate" type="text/x-jQuery-tmpl">
        <li class="list-group-item">
+       	
                             <div class="checkbox">
                                 <label>
                                     ${Title}
@@ -296,6 +287,7 @@
     
 	
 	<div class="well">
+		<legend>Code Sharing App</legend>
     <div class="row">
         <div class="col-md-12">
             
@@ -325,7 +317,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="editModalLabel">Update Wish</h4>
+        <h4 class="modal-title" id="editModalLabel">Update File</h4>
       </div>
       <div class="modal-body">
         <form role="form">
@@ -337,31 +329,12 @@
             <label for="message-text" class="control-label">Description:</label>
             <textarea class="form-control" id="editDescription"></textarea>
           </div>
-          <div class="form-group">
-  <label for="txtPost">Photos</label>
-                     
-<div class="input-group">
-                <span class="input-group-btn">
-                    <span class="btn btn-primary btn-file">
-                        Browse&hellip; <input type="file" id="fileupload" name="file" multiple>
-                    </span>
-                </span>
-		<div class="pull-right">
-                <img  id="imgUpload" style="width: 140px; height: 140px;" class="img-thumbnail"><input type="hidden" name="filePath" id="filePath"></input>
-		</div>
-            </div>
-  
-</div>
-
+          
 <div class="form-group">
 <label>Mark this as private and not visible to others.</label><br/>
 <input id="chkPrivate" name="private" type="checkbox"> Mark as Private <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
 </div>
 
-<div class="form-group">
-<label>Have you already accomplished this?</label><br/>
-<input id="chkDone" name="done" type="checkbox"> Mark as Done <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-</div>
         </form>
       </div>
       <div class="modal-footer">
@@ -380,7 +353,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header" style="text-align:center;">
-        <h4 class="modal-title" style="color:red;" id="deleteModalLabel">You are going to Delete this forever !!</h4>
+        <h4 class="modal-title" style="color:red;" id="deleteModalLabel">Confirm Delete</h4>
       </div>
      
       <div class="modal-footer">

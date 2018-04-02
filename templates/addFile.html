@@ -40,14 +40,15 @@
 
 <div class="well">
       <form role="form" method="post" action="/addFile">
-        <legend>Add Your file</legend>
+        <legend>Add Your File</legend>
        
       <div class="field">
-        <input type="text" name="filename" class="form-control" id="filename" placeholder="Filename (e.g. helloworld.py)">
+        <input type="text" name="filename" class="form-control" id="filename" placeholder="Filename">
       </div>
-       <div class="panel-body">
-            <div id="editor">#!/usr/local/bin/python</div>
+       <div class="form-group">
+       <div id="editor" name="inputDescription">#!/usr/local/bin/python
         </div>
+      </div>
         <div class="form-group">
           <label>Mark this as private and not visible to others.</label><br/>
           <input name="private" type="checkbox"> Mark as Private <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, json, request, session
 from flask.ext.mysql import MySQL
+from time import gmtime, strftime
 from werkzeug import generate_password_hash, check_password_hash
 
 mysql = MySQL()
@@ -39,9 +40,9 @@ def userHome():
         return render_template('userHome.html')
     else:
         return render_template('error.html',error = 'Unauthorized Access')
-        
+
 @app.route('/getAllFiles')
-def getAllWishes():
+def getAllFiles():
     try:
         if session.get('user'):
             
@@ -73,13 +74,46 @@ def getAllWishes():
 def showDashboard():
     return render_template('dashboard.html')
 
+@app.route('/addFile',methods=['POST'])
+def addFile():
+    try:
+        if session.get('user'):
+            _temp = request.form['inputTitle']
+            '''_description = request.form['inputDescription']'''
+            _user = session.get('user')
+            timestr = strftime("%Y%m%d-%H%M%S")
+            _time = strftime("%a, %d %b %Y %H:%M:%S")
+            _title = _temp.append(timestr)
+            if request.form.get('private') is None:
+                _private = 0
+            else:
+                _private = 1
+          
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_addFile',(_title,_user,_private, _time))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+                return redirect('/userHome')
+            else:
+                return render_template('error.html',error = 'An error occurred!')
+
+        else:
+            return render_template('error.html',error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html',error = str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route('/validateLogin',methods=['POST'])
 def validateLogin():
     try:
         _username = request.form['inputEmail']
         _password = request.form['inputPassword']
-        
-
         
         # connect to mysql
 
@@ -91,7 +125,7 @@ def validateLogin():
         if len(data) > 0:
             if check_password_hash(str(data[0][3]),_password):
                 session['user'] = data[0][0]
-                return redirect('/userHome')
+                return redirect('/showDashboard')
             else:
                 return render_template('error.html',error = 'Wrong Email address or Password.')
         else:
