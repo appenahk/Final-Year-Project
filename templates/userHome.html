@@ -4,15 +4,14 @@
   <head>
     <title>FYP</title>
 
-  
+  	<script src="../static/js/jquery-3.3.1.js"></script>
+  	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+  	<script src="../static/js/jquery.ui.widget.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css">
     <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
     <link href="../static/css/signup.css" rel="stylesheet">
-    <script src="../static/js/jquery-1.11.2.js"></script>
-    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
-
+    
  <style>
 	.btn-file {
     position: relative;
@@ -34,7 +33,7 @@
     display: block;
 }
     </style>
-	<script src="../static/js/jquery.ui.widget.js"></script>
+	
 	
 	<style type="text/css">
       body {
@@ -42,137 +41,62 @@
         padding-bottom: 40px;
       }
       .well {
-        margin: 60px 0;
+        margin: 30px 0;
         text-align: center;
       }
       .well legend{
         
         text-align: left;
       }
+      .trash
+       { 
+       	color:rgb(209, 91, 71);
+        }
+
+	.panel-body .checkbox 
+	{
+	 display:inline-block;margin:0px;
+	  }	
+
+
+.list-group { margin-bottom:0px; }
   </style>
 	
 	    
  <script>
 	$(function(){
 		
-		GetFiles(1);
-		$('#btnUpdate').click(function(){
+		GetFiles();
+		$('#btnEdit').click(function(){
 			$.ajax({
-			url : '/updateFile',
-			data : {title:$('#editTitle').val(),description:$('#editDescription').val(),id:localStorage.getItem('editId'),filePath:$('#imgUpload').attr('src'),isPrivate:$('#chkPrivate').is(':checked')?1:0,isDone:$('#chkDone').is(':checked')?1:0},
+			url : '/editFile',
+			data : {title:$('#editTitle').val(),description:$('#editDescription').val(),id:localStorage.getItem('editId')},
 			type : 'POST',
 			success: function(res){
 				
-
 			$('#editModal').modal('hide');
 							    
-				GetFiles(1);
-				
-				
-
-				
+				GetFiles();			
 			},
 			error: function(error){
 				console.log(error);
 			}
 		});
 		});
-
-		$('document').on('click','.navigation li a',function(){
-			console.log('me in');
-		});
 	});
-
-	function GetFiles(_page){
-		
-		var _offset = (_page - 1) * 2;
+	
+	function GetFiles(){
 		$.ajax({
 			url : '/getFile',
-			type : 'POST',
-			data : {offset:_offset},
+			type : 'GET',
 			success: function(res){
 				
-
-
+							    
 				
-				var itemsPerPage = 5;
 				
 				var fileObj = JSON.parse(res);
-				
 				$('#ulist').empty();
-				$('#listTemplate').tmpl(fileObj[0]).appendTo('#ulist');
-
-				var total = fileObj[1]['total'];
-				var pageCount = total/itemsPerPage;
-				var pageRem = total%itemsPerPage;
-				if(pageRem !=0 ){
-					pageCount = Math.floor(pageCount)+1;
-				}
-			
-
-				$('.pagination').empty();
-
- 				var pageStart = $('#hdnStart').val();
-				var pageEnd = $('#hdnEnd').val();
-
-				
-				
-
-				if(pageStart>5){
-					var aPrev = $('<a/>').attr({'href':'#'},{'aria-label':'Previous'})
-				.append($('<span/>').attr('aria-hidden','true').html('&laquo;'));
-
-				$(aPrev).click(function(){
-					$('#hdnStart').val(Number(pageStart) - 5);
-					$('#hdnEnd').val(Number(pageStart) - 5 + 4);
-					GetFiles(Number(pageStart) - 5);
-				});
-
-				var prevLink = $('<li/>').append(aPrev);
-				$('.pagination').append(prevLink);
-				}
-				
-				
-				
-				for(var i=Number(pageStart);i<=Number(pageEnd);i++){
-					
-					if (i > pageCount){
-						break;
-					}
-
-					
-					var aPage = $('<a/>').attr('href','#').text(i);
-					
-					$(aPage).click(function(i){
-						return function(){
-							GetFiles(i);
-						}
-					}(i));
-					var page = $('<li/>').append(aPage);
-
-					if((_page)==i){
-						$(page).attr('class','active');
-					}
-					
-					$('.pagination').append(page);
-					
-					
-				}
-				if ((Number(pageStart) + 5) <= pageCount){
-					var nextLink = $('<li/>').append($('<a/>').attr({'href':'#'},{'aria-label':'Next'})
-					.append($('<span/>').attr('aria-hidden','true').html('&raquo;').click(function(){
-							$('#hdnStart').val(Number(pageStart) + 5);
-							$('#hdnEnd').val(Number(pageStart) + 5 + 4);
-							GetFiles(Number(pageStart) + 5);
-						
-					})));
-					$('.pagination').append(nextLink);
-				}
-				
-				
-				
-				
-
+				$('#listTemplate').tmpl(fileObj).appendTo('#ulist');
 				
 			},
 			error: function(error){
@@ -188,7 +112,7 @@
 
 	function Delete(){
 		$.ajax({
-			url : '/deleteFil',
+			url : '/deleteFile',
 			data : {id:localStorage.getItem('deleteId')},
 			type : 'POST',
 			success: function(res){
@@ -219,18 +143,12 @@
 				console.log(data);
 				$('#editTitle').val(data[0]['Title']);
 				$('#editDescription').val(data[0]['Description']);
-				$('#imgUpload').attr('src',data[0]['FilePath']);
 				if(data[0]['Private']=="1"){
 					$('#chkPrivate').attr('checked','checked');
 				}
-				if(data[0]['Done']=="1"){
-					$('#chkDone').attr('checked','checked');
-				}
 				$('#editModal').modal();
 				
-				
-
-				
+								
 			},
 			error: function(error){
 				console.log(error);
@@ -239,17 +157,6 @@
 	}
     </script>
     
-   <style>
-     .trash { color:rgb(209, 91, 71); }
-
-
-
-
-.panel-body .checkbox { display:inline-block;margin:0px; }
-
-
-.list-group { margin-bottom:0px; }
-   </style>
    
   </head>
 
@@ -261,7 +168,7 @@
           <ul class="nav nav-pills pull-right">
 	     <li role="presentation"><a href="/showDashboard">Dasboard</a></li>
              <li role="presentation" class="active"><a href="/userHome">Home</a></li>
-	    <li role="presentation"><a href="/showAddFile">Add File</a></li>
+	    <li role="presentation"><a href="/showAddFile">Add Item</a></li>
             <li role="presentation" ><a href="/logout">Logout</a></li>
           </ul>
         </nav>
@@ -287,7 +194,7 @@
     
 	
 	<div class="well">
-		<legend>Code Sharing App</legend>
+		<legend>User Home</legend>
     <div class="row">
         <div class="col-md-12">
             
@@ -298,11 +205,7 @@
  
                         
                     </ul>
-		    <nav>
-  <ul class="pagination">
-    
-  </ul>
-</nav>
+		 
                 </div>
                 
             </div>
@@ -317,7 +220,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="editModalLabel">Update File</h4>
+        <h4 class="modal-title" id="editModalLabel">Edit File</h4>
       </div>
       <div class="modal-body">
         <form role="form">
@@ -339,7 +242,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button id="btnUpdate" type="button" class="btn btn-primary">Update</button>
+        <button id="btnEdit" type="button" class="btn btn-primary">Done</button>
       </div>
     </div>
   </div>
