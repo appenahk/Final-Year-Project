@@ -208,7 +208,11 @@ def saveFile():
     finally:
         cursor.close()
         conn.close()
-            
+@app.route('/versionFile',methods=['POST'])
+def versionFile():     
+	try:
+        if session.get('user'): 
+        	      
 
 @app.route('/addFile',methods=['POST'])
 def addFile():
