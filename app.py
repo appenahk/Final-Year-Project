@@ -102,7 +102,7 @@ def deleteFile():
         conn.close()
 
 @app.route('/getFile',methods=['POST'])
-def getWish():
+def getFile():
     try:
         if session.get('user'):
             _user = session.get('user')
@@ -208,11 +208,36 @@ def saveFile():
     finally:
         cursor.close()
         conn.close()
-@app.route('/versionFile',methods=['POST'])
-def versionFile():     
-	try:
-        if session.get('user'): 
-        	      
+@app.route('/versionFile',methods=['GET'])
+def versionFile(): 
+    try:
+		if session.get('user'):
+            _user = session.get('user')
+           
+
+            con = mysql.connect()
+            cursor = con.cursor()
+            cursor.callproc('sp_GetFileVersion',(_user, ))
+            
+            files = cursor.fetchall()        
+
+            response = []
+            files_dict = []
+            for file in files:
+                files_dict = {
+                        'Id': file[0],
+                        'Title': file[1],
+                        'Description': file[2],
+                        'Timestamp': file[4]}
+                files_dict.append(files_dict)
+            response.append(files_dict)
+            
+            return json.dumps(response)
+        else:
+            return render_template('error.html', error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html', error = str(e))
+
 
 @app.route('/addFile',methods=['POST'])
 def addFile():
