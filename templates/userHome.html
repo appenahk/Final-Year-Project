@@ -130,7 +130,7 @@
 				var data = JSON.parse(res);
 				console.log(data);
 				$('#editTitle').val(data[0]['Title']);
-				$('#editCode').val(data[0]['Description']);
+				$('#editCode').val(data[0]['Code']);
 				if(data[0]['Private']=="1"){
 					$('#chkPrivate').attr('checked','checked');
 				}
@@ -143,7 +143,7 @@
 			}
 		});
 	}
-	function Versions(elme){	
+	function Versions(){	
 		$.ajax({
 			url : '/versionFile',
 			type : 'GET',
@@ -152,6 +152,7 @@
 				var vObj = JSON.parse(res);
 				$('#plist').empty();
 				$('#versionTemplate').tmpl(vObj).appendTo('#plist');
+				$('#versionModal').modal();
 				
 			},
 			error: function(error){
@@ -160,23 +161,31 @@
 		});
 			
 	}
-	function Overwrite(leme){
-		localStorage.setItem('editId',$(elm).attr('data-id'));
+	function Overwite(leme){
 		$.ajax({
-			url : '/versionFile',
-		
-			type : 'GET',
+			url : '/overwriteFile',
+			data : {id:$(leme).attr('data-id')},
+			type : 'POST',
 			success: function(res){
-
+				var result = JSON.parse(res);
+				if(result.status == 'OK'){
+					$('#versionModal').modal('hide');
+					GetFiles();
+				}
+				else{
+					alert(result.status);	
+				}
+			},
+			error: function(error){
+				console.log(error);
 			}
+		});
 	}
     </script>
     
    
-  </head>
-
-  <body>
-
+</head>
+<body>
     <div class="container">
       <div class="header">
         <nav>
@@ -191,20 +200,17 @@
       </div>
 
      
-        <script id="listTemplate" type="text/x-jQuery-tmpl">
-       <li class="list-group-item">
-       	
-                            <div class="checkbox">
-                                <label>
-                                    ${Title}
-                                </label>
-                            </div>
-                            <div class="pull-right action-buttons">
-                                <a data-id=${Id} onclick="Edit(this)" ><span class="glyphicon glyphicon-pencil"></span></a>
-                               <a data-id=${Id} onclick="ConfirmDelete(this)" ><span class="glyphicon glyphicon-trash"></span></a>
-                               <a data-id=${Id} onclick="Versions(this)" ><span class="glyphicon glyphicon-trash"></span></a>
-                            </div>
-                        </li>
+    <script id="listTemplate" type="text/x-jQuery-tmpl">
+       <li class="list-group-item">     	
+            <div class="checkbox">
+                <label>${Title}</label>
+            </div>
+            <div class="pull-right action-buttons">
+                <a data-id=${Id} onclick="Edit(this)" ><span class="glyphicon glyphicon-pencil"></span></a>
+                <a data-id=${Id} onclick="ConfirmDelete(this)" ><span class="glyphicon glyphicon-trash"></span></a>
+                <a data-id=${Id} onclick="Versions(this)" ><span class="glyphicon glyphicon-trash"></span></a>
+            </div>
+        </li>
     </script>
 
     
@@ -246,7 +252,7 @@
           </div>
           <div class="form-group">
             <label for="message-text" class="control-label">Code:</label>
-            <div class="form-control" id="editor" name="editCode">
+            <div class="form-control" id="editor">
         </div>
           </div>
           
@@ -306,6 +312,9 @@
     </div>
 
     </div>
+     <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
 </div>
 </div>
 </div>

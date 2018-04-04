@@ -49,6 +49,117 @@ def userHome():
 def showDashboard():
     return render_template('dashboard.html')
 
+@app.route('/getFile',methods=['POST'])
+def getFile():
+    try:
+        if session.get('user'):
+            _user = session.get('user')
+           
+
+            con = mysql.connect()
+            cursor = con.cursor()
+            cursor.callproc('sp_GetFileByUser',(_user))
+            
+            files = cursor.fetchall()        
+
+            response = []
+            files_dict = []
+            for file in files:
+                files_dict = {
+                        'Id': file[0],
+                        'Title': file[1],
+                        'Code': file[2],
+                        'Date': file[4]}
+                files_dict.append(files_dict)
+            response.append(files_dict)
+            
+            return json.dumps(response)
+        else:
+            return render_template('error.html', error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html', error = str(e))
+
+@app.route('/getAllFiles')
+def getAllFiles():
+    try:
+        if session.get('user'):
+            
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_GetAllFiles')
+            result = cursor.fetchall()
+              
+            file_dict = []
+            for file in result:
+                file_dict = {
+                        'Id': file[0],
+                        'Title': file[1],
+                        'Code': file[2]}
+                file_dict.append(file_dict)       
+
+           
+
+            return json.dumps(file_dict)
+        else:
+            return render_template('error.html', error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html',error = str(e))
+
+
+@app.route('/getFileById',methods=['POST'])
+def getFileById():
+    try:
+        if session.get('user'):
+            
+            _id = request.form['id']
+            _user = session.get('user')
+    
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_GetFileById',(_id,_user))
+            result = cursor.fetchall()
+
+            files = []
+            files.append({'Id':result[0][0],'Title':result[0][1],'Code':result[0][2],'Private':result[0][3]})
+
+            return json.dumps(files)
+        else:
+            return render_template('error.html', error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html',error = str(e))
+
+@app.route('/addFile',methods=['POST'])
+def addFile():
+    try:
+        if session.get('user'):
+            _title = request.form['inputTitle']
+            _code = request.form['inputCode']
+            _user = session.get('user')
+            _date = strftime("%a, %d %b %Y %H:%M:%S")
+            
+            if request.form.get('private') is None:
+                _private = 0
+            else:
+                _private = 1
+          
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_addFile',(_title,_code,_user,_private, _date))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+                return redirect('/userHome')
+            else:
+                return render_template('error.html',error = 'An error occurred!')
+
+        else:
+            return render_template('error.html',error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html',error = str(e))
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/editFile', methods=['POST'])
 def editFile():
@@ -56,13 +167,13 @@ def editFile():
         if session.get('user'):
             _user = session.get('user')
             _title = request.form['title']
-            _description = request.form['description']
+            _code = request.form['code']
             _file_id = request.form['id']
             _isPrivate = request.form['isPrivate']           
 
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('sp_editFile',(_title,_description,_file_id,_user,_isPrivate))
+            cursor.callproc('sp_editFile',(_title,_code,_file_id,_user,_isPrivate))
             data = cursor.fetchall()
 
             if len(data) is 0:
@@ -101,85 +212,6 @@ def deleteFile():
         cursor.close()
         conn.close()
 
-@app.route('/getFile',methods=['POST'])
-def getFile():
-    try:
-        if session.get('user'):
-            _user = session.get('user')
-           
-
-            con = mysql.connect()
-            cursor = con.cursor()
-            cursor.callproc('sp_GetFileByUser',(_user))
-            
-            files = cursor.fetchall()        
-
-            response = []
-            files_dict = []
-            for file in files:
-                files_dict = {
-                        'Id': file[0],
-                        'Title': file[1],
-                        'Description': file[2],
-                        'Date': file[4]}
-                files_dict.append(files_dict)
-            response.append(files_dict)
-            
-            return json.dumps(response)
-        else:
-            return render_template('error.html', error = 'Unauthorized Access')
-    except Exception as e:
-        return render_template('error.html', error = str(e))
-
-@app.route('/getAllFiles')
-def getAllFiles():
-    try:
-        if session.get('user'):
-            
-            conn = mysql.connect()
-            cursor = conn.cursor()
-            cursor.callproc('sp_GetAllFiles')
-            result = cursor.fetchall()
-              
-            file_dict = []
-            for file in result:
-                file_dict = {
-                        'Id': file[0],
-                        'Title': file[1],
-                        'Description': file[2]}
-                file_dict.append(file_dict)       
-
-           
-
-            return json.dumps(file_dict)
-        else:
-            return render_template('error.html', error = 'Unauthorized Access')
-    except Exception as e:
-        return render_template('error.html',error = str(e))
-
-
-@app.route('/getFileById',methods=['POST'])
-def getFileById():
-    try:
-        if session.get('user'):
-            
-            _id = request.form['id']
-            _user = session.get('user')
-    
-            conn = mysql.connect()
-            cursor = conn.cursor()
-            cursor.callproc('sp_GetFileById',(_id,_user))
-            result = cursor.fetchall()
-
-            files = []
-            files.append({'Id':result[0][0],'Title':result[0][1],'Description':result[0][2],'Private':result[0][3]})
-
-            return json.dumps(files)
-        else:
-            return render_template('error.html', error = 'Unauthorized Access')
-    except Exception as e:
-        return render_template('error.html',error = str(e))
-
 @app.route('/saveFile',methods=['POST'])
 def saveFile():
     try:
@@ -208,6 +240,7 @@ def saveFile():
     finally:
         cursor.close()
         conn.close()
+
 @app.route('/versionFile',methods=['GET'])
 def versionFile(): 
     try:
@@ -227,7 +260,7 @@ def versionFile():
                 files_dict = {
                         'Id': file[0],
                         'Title': file[1],
-                        'Description': file[2],
+                        'Code': file[2],
                         'Timestamp': file[4]}
                 files_dict.append(files_dict)
             response.append(files_dict)
@@ -239,40 +272,7 @@ def versionFile():
         return render_template('error.html', error = str(e))
 
 
-@app.route('/addFile',methods=['POST'])
-def addFile():
-    try:
-        if session.get('user'):
-            _temp = request.form['inputTitle']
-            '''_description = request.form['inputDescription']'''
-            _user = session.get('user')
-            timestr = strftime("%Y%m%d-%H%M%S")
-            _time = strftime("%a, %d %b %Y %H:%M:%S")
-            _title = _temp.append(timestr)
-            if request.form.get('private') is None:
-                _private = 0
-            else:
-                _private = 1
-          
 
-            conn = mysql.connect()
-            cursor = conn.cursor()
-            cursor.callproc('sp_addFile',(_title,_user,_private, _time))
-            data = cursor.fetchall()
-
-            if len(data) is 0:
-                conn.commit()
-                return redirect('/userHome')
-            else:
-                return render_template('error.html',error = 'An error occurred!')
-
-        else:
-            return render_template('error.html',error = 'Unauthorized Access')
-    except Exception as e:
-        return render_template('error.html',error = str(e))
-    finally:
-        cursor.close()
-        conn.close()
 
 @app.route('/validateLogin',methods=['POST'])
 def validateLogin():
@@ -334,4 +334,4 @@ def signUp():
         conn.close()
 
 if __name__ == "__main__":
-    app.run(port=5002)
+    app.run(port=5014)
