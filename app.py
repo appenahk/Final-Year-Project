@@ -1,4 +1,4 @@
-from flask import Flask, render_template, json, request, session
+from flask import Flask, render_template, jsonify, request, session, redirect
 from flask_mysql import MySQL
 from time import gmtime, strftime
 from werkzeug import generate_password_hash, check_password_hash
@@ -12,6 +12,7 @@ app.config['MYSQL_DATABASE_USER'] = 'kieta'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'kieta'
 app.config['MYSQL_DATABASE_DB'] = 'fyproj'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+app.config['MYSQL_DATABASE_PORT'] = 3306
 mysql.init_app(app)
 
 
@@ -55,10 +56,9 @@ def getFile():
         if session.get('user'):
             _user = session.get('user')
            
-
             con = mysql.connect()
             cursor = con.cursor()
-            cursor.callproc('sp_GetFileByUser',(_user))
+            cursor.callproc('sp_GetUserFiles',(_user))
             
             files = cursor.fetchall()        
 
@@ -73,7 +73,7 @@ def getFile():
                 files_dict.append(files_dict)
             response.append(files_dict)
             
-            return json.dumps(response)
+            return jsonify(response)
         else:
             return render_template('error.html', error = 'Unauthorized Access')
     except Exception as e:
@@ -99,7 +99,7 @@ def getAllFiles():
 
            
 
-            return json.dumps(file_dict)
+            return jsonify(file_dict)
         else:
             return render_template('error.html', error = 'Unauthorized Access')
     except Exception as e:
@@ -122,7 +122,7 @@ def getFileById():
             files = []
             files.append({'Id':result[0][0],'Title':result[0][1],'Code':result[0][2],'Private':result[0][3]})
 
-            return json.dumps(files)
+            return jsonify(files)
         else:
             return render_template('error.html', error = 'Unauthorized Access')
     except Exception as e:
@@ -157,9 +157,7 @@ def addFile():
             return render_template('error.html',error = 'Unauthorized Access')
     except Exception as e:
         return render_template('error.html',error = str(e))
-    finally:
-        cursor.close()
-        conn.close()
+  
 
 @app.route('/editFile', methods=['POST'])
 def editFile():
@@ -178,14 +176,12 @@ def editFile():
 
             if len(data) is 0:
                 conn.commit()
-                return json.dumps({'status':'OK'})
+                return jsonify({'status':'OK'})
             else:
-                return json.dumps({'status':'ERROR'})
+                return jsonify({'status':'ERROR'})
     except Exception as e:
-        return json.dumps({'status':'Unauthorized access'})
-    finally:
-        cursor.close()
-        conn.close()
+        return jsonify({'status':'Unauthorized access'})
+
 
 @app.route('/deleteFile',methods=['POST'])
 def deleteFile():
@@ -201,16 +197,13 @@ def deleteFile():
 
             if len(result) is 0:
                 conn.commit()
-                return json.dumps({'status':'OK'})
+                return jsonify({'status':'OK'})
             else:
-                return json.dumps({'status':'An Error occured'})
+                return jsonify({'status':'An Error occured'})
         else:
             return render_template('error.html',error = 'Unauthorized Access')
     except Exception as e:
-        return json.dumps({'status':str(e)})
-    finally:
-        cursor.close()
-        conn.close()
+        return jsonify({'status':str(e)})
 
 @app.route('/saveFile',methods=['POST'])
 def saveFile():
@@ -237,9 +230,6 @@ def saveFile():
             return render_template('error.html',error = 'Unauthorized Access')
     except Exception as e:
         return render_template('error.html',error = str(e))
-    finally:
-        cursor.close()
-        conn.close()
 
 @app.route('/versionFile',methods=['GET'])
 def versionFile(): 
@@ -265,14 +255,14 @@ def versionFile():
                 files_dict.append(files_dict)
             response.append(files_dict)
             
-            return json.dumps(response)
+            return jsonify(response)
         else:
             return render_template('error.html', error = 'Unauthorized Access')
     except Exception as e:
         return render_template('error.html', error = str(e))
 
 @app.route('/overwriteFile',methods=['POST'])
-def addFile():
+def overwriteFile():
     try:
         if session.get('user'):
             _title = request.form['inputTitle']
@@ -345,17 +335,17 @@ def signUp():
 
             if len(data) is 0:
                 conn.commit()
-                return json.dumps({'message':'User created successfully !'})
+                return jsonify({'message':'User created successfully'})
             else:
-                return json.dumps({'error':str(data[0])})
+                return jsonify({'error':str(data[0])})
         else:
-            return json.dumps({'html':'<span>Enter the required fields</span>'})
+            return jsonify({'html':'<span>Enter the required fields</span>'})
 
     except Exception as e:
-        return json.dumps({'error':str(e)})
+        return jsonify({'error':str(e)})
     finally:
         cursor.close() 
         conn.close()
 
 if __name__ == "__main__":
-    app.run(port=5014)
+    app.run(port=5014, debug=TRUE)

@@ -1,5 +1,5 @@
 $(function(){
-	$('#btnSignIn1').click(function(){
+	$('#btnSignIn').click(function(){
 		
 		$.ajax({
 			url: '/validateLogin',
