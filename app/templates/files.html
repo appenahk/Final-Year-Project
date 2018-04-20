@@ -1,0 +1,20 @@
+ <table class="table table-hover">
+        <tr>
+            <td width="70px">
+                <a href="{{ url_for('user', username=file.author.username) }}">
+                </a>
+            </td>
+            <td>
+                <a href="{{ url_for('user', username=file.author.username) }}">
+                    {{ file.author.username }}
+                </a>
+                
+                <br>
+                {{ file.title }}
+                <div class="pull-right action-buttons">
+                <a data-id=${Id} onclick="View(this)" ><span class="glyphicon glyphicon-eye-open"></span>
+                <a data-id=${Id} onclick="ConfirmSave(this)" ><span class="glyphicon glyphicon-import"></span></a>
+                </div>
+            </td>
+        </tr>
+    </table>

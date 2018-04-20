@@ -80,6 +80,7 @@ def user(username):
     page = request.args.get('page', 1, type=int)
     files = user.files.order_by(Files.timestamp.desc()).paginate(
         page, app.config['POSTS_PER_PAGE'], False)
+    
     next_url = url_for('user', username=user.username, page=files.next_num) \
         if files.has_next else None
     prev_url = url_for('user', username=user.username, page=files.prev_num) \
@@ -96,8 +97,24 @@ def addFile():
         _private = 0
     else:
         _private = 1
-
-    print(_title, file=sys.stderr)
-    print(_code, file=sys.stdout)
+    file = Files(title=request.form['filename'], body=request.form['inputCode'], 
+        private=_private, author=current_user)
+    
+    db.session.add(file)
+    db.session.commit()
+    
     flash('File added')    
     return render_template('index.html', title='Home')
+
+@app.route('/getFile',methods=['POST'])
+def getFile():
+    print("check", file=sys.stderr)
+
+@app.route('/editFile', methods=['POST'])
+def editFile():
+    print("check", file=sys.stderr)
+
+
+@app.route('/deleteFile',methods=['POST'])
+def deleteFile():
+    print("check", file=sys.stderr)

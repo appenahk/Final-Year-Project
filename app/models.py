@@ -36,6 +36,7 @@ class Files(db.Model):
     body = db.Column(db.String(6000))
     private = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    version = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __repr__(self):
