@@ -1,20 +1,18 @@
-    <table class="table table-hover">
+<li class="list-group-item">
         <tr>
             <td width="70px">
                 <a href="{{ url_for('user', username=file.author.username) }}">
                 </a>
             </td>
             <td>
-                <a href="{{ url_for('user', username=file.author.username) }}">
-                    {{ file.author.username }}
+                <a data-id={{file.id}} onclick="View(this)" >
+                   {{ file.title }}     {{ file.id }} 
                 </a>
-                
-                <br>
-                {{ file.title }}
+                                
                 <div class="pull-right action-buttons">
-                <a data-id=${Id} onclick="Edit(this)" ><span class="glyphicon glyphicon-pencil"></span></a>
-                <a data-id=${Id} onclick="ConfirmDelete(this)" ><span class="glyphicon glyphicon-trash"></span></a>
+                <a data-id={{file.id}} onclick="Edit(this)" ><span class="glyphicon glyphicon-pencil"></span></a>
+                <a data-id={{file.id}} onclick="ConfirmDelete(this)" ><span class="glyphicon glyphicon-trash"></span></a>
             </div>
             </td>
         </tr>
-    </table>
+</li>

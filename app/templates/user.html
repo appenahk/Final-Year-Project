@@ -1,6 +1,127 @@
 {% extends "base.html" %}
 
 {% block app_content %}
+<style type="text/css" media="screen">
+      #editor {
+       height: 200px;
+      }
+      
+</style> 
+<script>
+    var version;
+    function Refresh(){
+        $.ajax({
+            url : '/user/{{current_user.username}}',
+            type : 'POST',
+            success: function(res){
+                    console.log(res);
+                
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+    
+    }
+     function View(ment){
+        localStorage.setItem('viewId',$(ment).attr('data-id'));
+        $.ajax({
+            url : '/getFile',
+            data : {id:$(ment).attr('data-id')},
+            type : 'POST',
+            success: function(res){
+                
+               var data = jQuery.parseJSON(JSON.stringify(res));
+               console.log(data);
+               document.getElementById('editTitle').value = data.Title;
+               document.getElementById('editCode').value = data.Code;
+                $('#viewModal').modal();
+                
+                                
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+    }
+    function ConfirmDelete(elem){
+        localStorage.setItem('deleteId',$(elem).attr('data-id'));
+        $('#deleteModal').modal();
+    }
+
+    function Delete(){
+        $.ajax({
+            url : '/deleteFile',
+            data : {id:localStorage.getItem('deleteId')},
+            type : 'POST',
+            success: function(res){
+               var result = jQuery.parseJSON(JSON.stringify(res))
+               if(result.status == 'OK'){
+                    $('#deleteModal').modal('hide');
+                    //Refresh();
+                }
+                else{
+                    alert(result.status);  
+                    $('#deleteModal').modal('hide'); 
+                }
+            },
+            error: function(error){
+                console.log(data)
+                console.log(error);
+            }
+        });
+    }
+    function Edit(elm){
+       localStorage.setItem('editId',$(elm).attr('data-id'));
+       
+        $.ajax({
+            url : '/getFile',
+            data : {id:$(elm).attr('data-id')},
+            type : 'POST',
+            success: function(res){
+                
+                var data = jQuery.parseJSON(JSON.stringify(res));
+                console.log(data);
+                document.getElementById('editTitle').value = data.Title;
+                document.getElementById('editCode').value = data.Code;
+                
+                if(data.Private == "1"){
+                    $('#chkPrivate').attr('checked','checked');
+                }
+                version = data.Version;
+                $('#editModal').modal();
+                
+                                
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+           
+    }
+    function ConfirmEdit(){
+        $.ajax({
+            url : '/editFile',
+            data : {
+                title: $('#editTitle').val(),
+                code: $('#editCode').val(),
+                id: localStorage.getItem('editId'),
+                isPrivate:$('#chkPrivate').is(':checked')?1:0,
+                versNo:version
+        },
+            type : 'POST',
+            success: function(res){
+                console.log(res);
+                $('#editModal').modal('hide');
+                //Refresh();
+                                              
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+    }
+</script>
     <table class="table table-hover">
         <tr>
             
@@ -28,4 +149,96 @@
             </li>
         </ul>
     </nav>
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header" style="text-align:center;">
+            <h4 class="modal-title" style="color:red;" id="deleteModalLabel">Confirm Delete</h4>
+          </div>
+         
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="Delete()">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <h4 class="modal-title" id="editModalLabel">Edit File</h4>
+      </div>
+      <div class="modal-body">
+    <form role="form">
+      <div class="field">
+        <input type="text" name="filename" class="form-control" id="editTitle">
+      </div>
+      <br>
+       <div id="editor" name="editorCode"></div>
+      <div class="form-group">
+        <input name=editCode type="hidden" id=editCode >
+      </div>
+        <div class="form-group">
+          <label>Mark this as private and not visible to others.</label><br/>
+          <input name="chkPrivate" type="checkbox"> Mark as Private <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+     </div>
+
+    </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary"onclick="ConfirmEdit()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="viewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="viewModalLabel">View File</h4>
+        </div>
+        <div class="modal-body">
+          <form role="form">
+      <div class="field">
+        <input type="text" name="filename" class="form-control" id="viewTitle">
+      </div>
+      <br>
+       <div id="editor" name="editorCode "></div>
+       <div class="form-group">
+        <input name=editCode type="hidden" id=editCode >
+      </div>
+        
+
+    </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+</div>
+</div>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"></script>
+<script type="text/javascript">
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/clouds");
+    editor.getSession().setMode("ace/mode/python");
+    
+   
+    var textarea = $('input[type="hidden"]');
+    editor.getSession().setValue(textarea.val());
+    editor.getSession().on('change', function(){
+      textarea.val(editor.getSession().getValue());
+});
+</script>
+<script src="../static/js/jquery-3.3.1.js"></script>
+
+  <script src="../static/js/jquery.ui.widget.js"></script>
+
+
 {% endblock %}

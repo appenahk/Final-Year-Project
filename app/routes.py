@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, jsonify, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
@@ -24,7 +24,7 @@ def index():
 @login_required
 def explore():
     page = request.args.get('page', 1, type=int)
-    files = Files.query.order_by(Files.timestamp.desc()).paginate(
+    files = Files.query.filter_by(private=0).order_by(Files.timestamp.desc()).paginate(
         page, app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('explore', page=files.next_num) \
         if files.has_next else None
@@ -85,7 +85,7 @@ def user(username):
         if files.has_next else None
     prev_url = url_for('user', username=user.username, page=files.prev_num) \
         if files.has_prev else None
-    return render_template('user.html', user=user, files=files.items,
+    return render_template('user.html', title='Profile', user=user, files=files.items,
                            next_url=next_url, prev_url=prev_url)
 
 @app.route('/addFile',methods=['GET', 'POST'])
@@ -97,8 +97,9 @@ def addFile():
         _private = 0
     else:
         _private = 1
+    _version = 1
     file = Files(title=request.form['filename'], body=request.form['inputCode'], 
-        private=_private, author=current_user)
+        private=_private, version=_version, author=current_user)
     
     db.session.add(file)
     db.session.commit()
@@ -108,13 +109,56 @@ def addFile():
 
 @app.route('/getFile',methods=['POST'])
 def getFile():
-    print("check", file=sys.stderr)
+    _id = request.form['id']
+    file = Files.query.filter_by(id=_id)
+    for row in file:
+        return jsonify({'Title':row.title,'Code':row.body,
+            'Private':row.private, 'Version':row.version})
+    return render_template('index.html', title='Home')
 
-@app.route('/editFile', methods=['POST'])
+@app.route('/editFile', methods=['GET', 'POST'])
+@login_required
 def editFile():
-    print("check", file=sys.stderr)
+    _id = request.form['id']
+    _version = request.form['versNo']
+    newVersion = int(_version) + 1
+    print(newVersion, file=sys.stderr)
+    file = Files(title=request.form['title'], body=request.form['code'], 
+        private=request.form['isPrivate'],version=newVersion, author=current_user)
+    db.session.add(file)
+    db.session.commit()
+    flash('File edited')    
+    return render_template('index.html', title='Home')
 
 
-@app.route('/deleteFile',methods=['POST'])
+@app.route('/deleteFile',methods=['GET', 'POST'])
+@login_required
 def deleteFile():
-    print("check", file=sys.stderr)
+    _id = request.form['id']
+    
+    Files.query.filter_by(id=_id).delete()
+    db.session.commit()
+    exists = db.session.query(Files.id).filter_by(id=_id).scalar()
+      
+    if exists is None:        
+        return jsonify({'status':'OK'})
+    else:
+        return jsonify({'status':'An Error occured'})
+
+@app.route('/saveFile',methods=['POST'])
+@login_required
+def saveFile():
+    _id = request.form['id']
+    _title=request.form['title']
+    file = Files(title=_title, body=request.form['code'], 
+        private=1, version = 1, author=current_user)
+    db.session.add(file)
+    db.session.commit()
+    flash('Saved to User')
+    
+    exists = db.session.query(Files.title).filter_by(title=_title).filter_by(author=current_user).scalar()
+      
+    if exists is not None:        
+        return jsonify({'status':'OK'})
+    else:
+        return jsonify({'status':'An Error occured'})

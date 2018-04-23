@@ -1,4 +1,4 @@
- <table class="table table-hover">
+<li class="list-group-item">
         <tr>
             <td width="70px">
                 <a href="{{ url_for('user', username=file.author.username) }}">
@@ -12,9 +12,10 @@
                 <br>
                 {{ file.title }}
                 <div class="pull-right action-buttons">
-                <a data-id=${Id} onclick="View(this)" ><span class="glyphicon glyphicon-eye-open"></span>
-                <a data-id=${Id} onclick="ConfirmSave(this)" ><span class="glyphicon glyphicon-import"></span></a>
+                <a data-id={{file.id}} onclick="View(this)" ><span class="glyphicon glyphicon-eye-open"></span>
+                <a data-id={{file.id}} onclick="ConfirmSave(this)" ><span class="glyphicon glyphicon-import"></span></a>
+                </a>    
                 </div>
             </td>
         </tr>
-    </table>
+</li>

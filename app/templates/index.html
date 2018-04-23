@@ -2,7 +2,7 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Add Your File</h1>
+    <h1>Create Your File</h1>
      <style type="text/css" media="screen">
       #editor {
        height: 200px;
@@ -16,6 +16,7 @@
       <div class="field">
         <input type="text" name="filename" class="form-control" id="filename" placeholder="Filename">
       </div>
+      <br>
        <div id="editor" name="editorCode">#!/usr/local/bin/python</div>
       <div class="form-group">
         <input name=inputCode type="hidden">
