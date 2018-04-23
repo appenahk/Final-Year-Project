@@ -25,7 +25,7 @@
                var data = jQuery.parseJSON(JSON.stringify(res));
                console.log(data);
                document.getElementById('viewTitle').value = data.Title;
-               document.getElementById('viewCode').value = data.Code;
+               editor.setValue(data.Code);
                 $('#viewModal').modal();
                 
                                 
@@ -97,9 +97,7 @@
       </div>
       <br>
        <div id="editor" name="editorCode "></div>
-        <input name=viewCode type="hidden" id=viewCode >
-
-    </form>
+       
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -129,8 +127,7 @@
     editor.setTheme("ace/theme/clouds");
     editor.getSession().setMode("ace/mode/python");
     
-    var textarea = $('input[id="viewCode"]');
-    editor.getSession().setValue(textarea.val());
+   
 
 </script>
 <script src="../static/js/jquery-3.3.1.js"></script>

@@ -15,6 +15,9 @@ def before_request():
 
 
 @app.route('/', methods=['GET', 'POST'])
+def main():
+    return render_template('start.html')
+    
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
