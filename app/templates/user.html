@@ -1,29 +1,20 @@
 {% extends "base.html" %}
 
 {% block app_content %}
+
+
 <style type="text/css" media="screen">
       #editor {
        height: 200px;
       }
-      
+      #editor2 {
+       height: 200px;
+      }
+    
 </style> 
 <script>
-    var version;
-    function Refresh(){
-        $.ajax({
-            url : '/user/{{current_user.username}}',
-            type : 'POST',
-            success: function(res){
-                    console.log(res);
-                
-            },
-            error: function(error){
-                console.log(error);
-            }
-        });
-    
-    }
-     function View(ment){
+    var version; 
+    function View(ment){
         localStorage.setItem('viewId',$(ment).attr('data-id'));
         $.ajax({
             url : '/getFile',
@@ -33,8 +24,8 @@
                 
                var data = jQuery.parseJSON(JSON.stringify(res));
                console.log(data);
-               document.getElementById('editTitle').value = data.Title;
-               editor.setValue(data.Code);
+               document.getElementById('viewTitle').value = data.Title;
+               editor2.setValue(data.Code);
                 $('#viewModal').modal();
                 
                                 
@@ -58,7 +49,7 @@
                var result = jQuery.parseJSON(JSON.stringify(res))
                if(result.status == 'OK'){
                     $('#deleteModal').modal('hide');
-                    //Refresh();
+                    window.location.reload();
                 }
                 else{
                     alert(result.status);  
@@ -114,14 +105,20 @@
             success: function(res){
                 console.log(res);
                 $('#editModal').modal('hide');
-                //Refresh();
+                window.location.reload();
                                               
             },
             error: function(error){
                 console.log(error);
+                $('#editModal').modal('hide');
             }
         });
     }
+    function Versions(test){       
+        $('#versionModal').modal();
+  }
+  
+
 </script>
     <table class="table table-hover">
         <tr>
@@ -175,7 +172,7 @@
       <div class="modal-body">
     <form role="form">
       <div class="field">
-        <input type="text" name="filename" class="form-control" id="editTitle">
+        <input type="text" name="filename" class="form-control" id="editTitle" disabled>
       </div>
       <br>
        <div id="editor" name="editorCode"></div>
@@ -206,13 +203,11 @@
         <div class="modal-body">
           <form role="form">
       <div class="field">
-        <input type="text" name="filename" class="form-control" id="viewTitle">
+        <input type="text" name="filename" class="form-control" id="viewTitle" disabled>
       </div>
       <br>
-       <div id="editor" name="editorCode "></div>
-       <div class="form-group">
-        <input name=editCode type="hidden" id=editCode >
-      </div>
+       <div id="editor2" name="editorCode2 "></div>
+       
         
 
     </form>
@@ -223,23 +218,58 @@
     </div>
 </div>
 </div>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+<div class="modal fade" id="versionModal" tabindex="-1" role="dialog" aria-labelledby="versionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="versionModalLabel">File Versions</h4>
+    </div>
+    
+    <div class="modal-body">
+
+		<div class="row">
+        	<div class="col-md-12">          
+                <div class="panel-body" style="height: 500px;overflow-y: scroll";>
+                    {% for file in files %}
+        				{% include '_file_.html' %}
+    				{% endfor %}		 
+                </div>   
+            </div>
+       
+    </div>
+
+
+    </div>
+     <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+</div>
+</div>
+</div>
+
+
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"></script>
 <script type="text/javascript">
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/clouds");
-    editor.getSession().setMode("ace/mode/python");
+    editor.getSession().setMode("ace/mode/python");  
     
-   
     var textarea = $('input[type="hidden"]');
     editor.getSession().setValue(textarea.val());
     editor.getSession().on('change', function(){
       textarea.val(editor.getSession().getValue());
 });
+    var editor2 = ace.edit("editor2");
+    editor2.setTheme("ace/theme/clouds");
+    editor2.getSession().setMode("ace/mode/python");
+    editor2.setReadOnly(true);
 </script>
 <script src="../static/js/jquery-3.3.1.js"></script>
 
-  <script src="../static/js/jquery.ui.widget.js"></script>
-
+<script src="../static/js/jquery.ui.widget.js"></script>
 
 {% endblock %}

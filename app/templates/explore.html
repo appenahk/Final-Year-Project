@@ -36,27 +36,27 @@
         });
     }
   function ConfirmSave(lem){
-  localStorage.setItem('saveId',$(lem).attr('data-id'));
+  //localStorage.setItem('saveId',$(lem).attr('data-id'));
     $('#saveModal').modal();
   }
 
   function Save(){
     $.ajax({
       url : '/saveFile',
-      data : {
-      			title: $('#viewTitle').val(),
-                code: $('#viewCode').val(),
-                id:localStorage.getItem('saveId')
-            },
+      data : {id:localStorage.getItem('viewId')},
       type : 'POST',
       success: function(res){
         var result = jQuery.parseJSON(JSON.stringify(res))
         if(result.status == 'OK'){
           $('#saveModal').modal('hide');
+          $('#viewModal').modal('hide');
+          window.location.reload();
         }
         else{
-          //alert(result.status); 
+          alert(result.status); 
           $('#saveModal').modal('hide');
+          $('#viewModal').modal('hide');
+          window.location.reload();
         }
       },
       error: function(error){
@@ -93,9 +93,10 @@
         <div class="modal-body">
           <form role="form">
       <div class="field">
-        <input type="text" name="filename" class="form-control" id="viewTitle">
+        <input type="text" name="filename" class="form-control" id="viewTitle" disabled>
       </div>
       <br>
+
        <div id="editor" name="editorCode "></div>
        
       </div>
@@ -126,7 +127,7 @@
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/clouds");
     editor.getSession().setMode("ace/mode/python");
-    
+    editor.setReadOnly(true);
    
 
 </script>

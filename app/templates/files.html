@@ -10,11 +10,11 @@
                 </a>
                 
                 <br>
-                {{ file.title }}
+                {{ file.title }} {{ file.version }} 
+
                 <div class="pull-right action-buttons">
-                <a data-id={{file.id}} onclick="View(this)" ><span class="glyphicon glyphicon-eye-open"></span>
-                <a data-id={{file.id}} onclick="ConfirmSave(this)" ><span class="glyphicon glyphicon-import"></span></a>
-                </a>    
+                <a data-id={{file.id}} onclick="View(this)" ><span class="glyphicon glyphicon-eye-open"></span></a>
+ 
                 </div>
             </td>
         </tr>

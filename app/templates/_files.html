@@ -6,13 +6,17 @@
             </td>
             <td>
                 <a data-id={{file.id}} onclick="View(this)" >
-                   {{ file.title }}     {{ file.id }} 
+                   {{ file.title }}     {{ file.version }} 
                 </a>
-                                
-                <div class="pull-right action-buttons">
-                <a data-id={{file.id}} onclick="Edit(this)" ><span class="glyphicon glyphicon-pencil"></span></a>
-                <a data-id={{file.id}} onclick="ConfirmDelete(this)" ><span class="glyphicon glyphicon-trash"></span></a>
-            </div>
+                {% if current_user.username==file.author.username %}
+                    <div class="pull-right action-buttons">
+                    <a data-id={{file.id}} onclick="Edit(this)" ><span class="glyphicon glyphicon-pencil"></span></a>
+                    <a data-id={{file.id}} onclick="ConfirmDelete(this)" ><span class="glyphicon glyphicon-trash"></span></a>
+                    <a data-id={{file.id}} onclick="Versions(this)" ><span class="glyphicon glyphicon-list"></span></a>
+                     </div>
+                {% else %}                  
+                
+                {% endif %}
             </td>
         </tr>
 </li>

@@ -1,0 +1,19 @@
+<li class="list-group-item">
+        <tr>
+            <td width="70px">
+                <a href="{{ url_for('user', username=file.author.username) }}">
+                </a>
+            </td>
+            <td>
+                <a >
+                   {{ file.title }}     {{ file.version }} 
+                </a>
+                              
+                <div class="pull-right action-buttons">
+                 <a data-id={{file.id}} onclick="View(this)" ><span class="glyphicon glyphicon-eye-open"></span>
+                <a data-id={{file.id}} onclick="ConfirmOverwrite(this)" ><span class="glyphicon glyphicon-import"></span></a>
+                
+            </div>
+            </td>
+        </tr>
+</li>
