@@ -5,11 +5,11 @@ from flask import current_app
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
-from app import db, login
+from app import app, db, login
 from app.search import add_to_index, remove_from_index, query_index
 
 
-class SearchableMixin(object):
+'''class SearchableMixin(object):
     @classmethod
     def search(cls, expression, page, per_page):
         ids, total = query_index(cls.__tablename__, expression, page, per_page)
@@ -42,7 +42,7 @@ class SearchableMixin(object):
     @classmethod
     def reindex(cls):
         for obj in cls.query:
-            add_to_index(cls.__tablename__, obj)
+            add_to_index(cls.__tablename__, obj)'''
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -62,17 +62,31 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+        
+    def get_reset_password_token(self, expires_in=600):
+        return jwt.encode(
+            {'reset_password': self.id, 'exp': time() + expires_in},
+            app.config['SECRET_KEY'], algorithm='HS256').decode('utf-8')
+
+    @staticmethod
+    def verify_reset_password_token(token):
+        try:
+            id = jwt.decode(token, app.config['SECRET_KEY'],
+                            algorithms=['HS256'])['reset_password']
+        except:
+            return
+        return User.query.get(id)
 
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
 
-class Files(SearchableMixin, db.Model):
-    __searchable__ = ['title']
+class Files( db.Model):
+    #__searchable__ = ['title']
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
-    body = db.Column(db.String(10000))
+    body = db.Column(db.String(6000))
     private = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     version = db.Column(db.Integer)
@@ -80,7 +94,7 @@ class Files(SearchableMixin, db.Model):
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
-        
+
     @property    
     def serialize(self):
         return {
@@ -90,5 +104,6 @@ class Files(SearchableMixin, db.Model):
            'private':self.private,
            'version':self.version
            }
-db.event.listen(db.session, 'before_commit', Files.before_commit)
-db.event.listen(db.session, 'after_commit', Files.after_commit)
+
+#db.event.listen(db.session, 'before_commit', Files.before_commit)
+#db.event.listen(db.session, 'after_commit', Files.after_commit)

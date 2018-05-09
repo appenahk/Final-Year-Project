@@ -3,8 +3,9 @@ from flask import render_template, jsonify, flash, redirect, url_for, request, g
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db, elasticsearch
-from app.forms import LoginForm, RegistrationForm, SearchForm
+from app.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, SearchForm
 from app.models import User, Files
+from app.email import send_password_reset_email
 import sys
 from sqlalchemy import func, distinct
 
@@ -25,6 +26,20 @@ def main():
 def index():
     return render_template('index.html', title='Home')
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations, you are now a registered user!')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -42,26 +57,10 @@ def login():
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
-
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
-
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
 
 @app.route('/explore')
 @login_required
@@ -80,11 +79,12 @@ def explore():
 @login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
+    userfiles = db.session.query(Files.id, Files.title, Files.body, \
+    Files.private, func.max(Files.version).label("version"), \
+    Files.timestamp).group_by(Files.title).filter_by(user_id=user.id)
     page = request.args.get('page', 1, type=int)
-    '''files2 = Files.query(func.max(Files.version)).filter(author == current_user.username)
-    for row in files2:
-        print(row.version, file=sys.stderr)'''
-    files = user.files.order_by(Files.timestamp.desc()).paginate(
+
+    files = userfiles.order_by(Files.timestamp.desc()).paginate(
         page, app.config['POSTS_PER_PAGE'], False)
     
     next_url = url_for('user', username=user.username, page=files.next_num) \
@@ -104,6 +104,7 @@ def addFile():
     else:
         _private = 1
     _version = 1
+
     file = Files(title=request.form['filename'], body=request.form['inputCode'], 
         private=_private, version=_version, author=current_user)
     
@@ -111,27 +112,28 @@ def addFile():
     db.session.commit()
     
     flash('File added')    
-    return render_template('index.html', title='Home')
+    return redirect(url_for('index'))
 
 @app.route('/getFile',methods=['POST'])
 def getFile():
     _id = request.form['id']
     file = Files.query.filter_by(id=_id)
-    for row in file:
-        return jsonify({'Title':row.title,'Code':row.body,
-            'Private':row.private, 'Version':row.version})
+    for data in file:
+        return jsonify({'Title':data.title,'Code':data.body,
+            'Private':data.private, 'Version':data.version})
     
 @app.route('/editFile', methods=['GET', 'POST'])
 @login_required
 def editFile():
-    _id = request.form['id']
     _version = request.form['versNo']
     newVersion = int(_version) + 1
     
     file = Files(title=request.form['title'], body=request.form['code'], 
         private=request.form['isPrivate'],version=newVersion, author=current_user)
+
     db.session.add(file)
     db.session.commit()
+
     flash('File edited')    
     return jsonify({'status':'OK'})
 
@@ -144,7 +146,7 @@ def deleteFile():
     Files.query.filter_by(id=_id).delete()
     db.session.commit()
     exists = db.session.query(Files.id).filter_by(id=_id).scalar()
-    print(current_user.username, file=sys.stderr)   
+    
     if exists is None:        
         return jsonify({'status':'OK'})
     else:
@@ -156,16 +158,16 @@ def saveFile():
     _id = request.form['id']
     file = Files.query.filter_by(id=_id)
     exists = None
-    for row in file:
-        newFile = Files(title=row.title, body=row.body, 
+    for data in file:
+        newFile = Files(title=data.title, data=data.body, 
         private=1,version=1, author=current_user)
         db.session.add(newFile)
         db.session.commit()
         
         exists = db.session.query(Files.title).filter_by(title=newFile.title).filter_by(author=current_user).scalar()
-        print(exists, file=sys.stderr) 
-    flash('Saved to User')  
-    if exists is not None:        
+        #print(exists, file=sys.stderr) 
+    if exists is not None:   
+        flash('Saved to User')      
         return jsonify({'status':'OK'})
     else:
         return jsonify({'status':'An Error occured'})
@@ -206,3 +208,33 @@ def search():
         if page > 1 else None
     return render_template('search.html', title='Search', files=files,
                            next_url=next_url, prev_url=prev_url)
+
+@app.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            send_password_reset_email(user)
+        flash('Check your email for the instructions to reset your password')
+        return redirect(url_for('login'))
+    return render_template('reset_password_request.html',
+                           title='Reset Password', form=form)
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    user = User.verify_reset_password_token(token)
+    if not user:
+        return redirect(url_for('index'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Your password has been reset.')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', form=form)
