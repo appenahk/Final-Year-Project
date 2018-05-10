@@ -26,6 +26,7 @@
                console.log(data);
                document.getElementById('viewTitle').value = data.Title;
                editor2.setValue(data.Code);
+               $('#versionModal').modal('hide');
                 $('#viewModal').modal();
                 
                                 
@@ -95,7 +96,6 @@
             data : {
                 title: $('#editTitle').val(),
                 code: $('#editCode').val(),
-                id: localStorage.getItem('editId'),
                 isPrivate:$('#chkPrivate').is(':checked')?1:0,
                 versNo:version
         },
@@ -112,10 +112,40 @@
             }
         });
     }
-    function Versions(test){       
-        $('#versionModal').modal();
+    function Versions(test){
+    
+                
+                $('#versionModal').modal();
+                
+                                
+                
   }
-  
+  function ConfirmOvewrite(lemmi){
+        localStorage.setItem('overId',$(lemmi).attr('data-id'));
+        $('#versionModal').modal('hide');
+        $('#overwriteModal').modal();
+    }
+
+    function Overwrite(){
+        $.ajax({
+            url : '/overwriteFile',
+            data : {id:localStorage.getItem('overId')},
+            type : 'POST',
+            success: function(res){
+               var result = jQuery.parseJSON(JSON.stringify(res))
+               if(result.status == 'OK'){
+                    $('#overwriteModal').modal('hide');
+                    window.location.reload();
+                }
+                else{
+                    alert(result.status);  
+                }
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+    }
 
 </script>
     <table class="table table-hover">
@@ -160,6 +190,20 @@
       </div>
     </div>
 
+<div class="modal fade" id="overwriteModal" tabindex="-1" role="dialog" aria-labelledby="overwriteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header" style="text-align:center;">
+            <h4 class="modal-title" style="color:red;" id="overwriteModalLabel">Confirm Overwrite</h4>
+          </div>
+         
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="Overwrite()">Overwrite</button>
+          </div>
+        </div>
+      </div>
+    </div>
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -230,7 +274,7 @@
 		<div class="row">
         	<div class="col-md-12">          
                 <div class="panel-body" style="height: 500px;overflow-y: scroll";>
-                    {% for file in files %}
+                    {% for file in files2 %}
         				{% include '_file_.html' %}
     				{% endfor %}		 
                 </div>   

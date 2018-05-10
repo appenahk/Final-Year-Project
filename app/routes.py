@@ -79,19 +79,29 @@ def explore():
 @login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
+    
     userfiles = db.session.query(Files.id, Files.title, Files.body, \
     Files.private, func.max(Files.version).label("version"), \
     Files.timestamp).group_by(Files.title).filter_by(user_id=user.id)
     page = request.args.get('page', 1, type=int)
-
+    data = 0
+    file2 = Files.query.filter_by(id=17)
+    for row in file2:
+        print(row.title, file=sys.stderr)
+        data = row.title
+    files2a = db.session.query(Files.id, Files.title, Files.body, \
+    Files.private, Files.version, \
+    Files.timestamp).filter_by(user_id=user.id)
+    
     files = userfiles.order_by(Files.timestamp.desc()).paginate(
         page, app.config['POSTS_PER_PAGE'], False)
-    
+    files2 = files2a.order_by(Files.timestamp.desc()).paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('user', username=user.username, page=files.next_num) \
         if files.has_next else None
     prev_url = url_for('user', username=user.username, page=files.prev_num) \
         if files.has_prev else None
-    return render_template('user.html', title='Profile', user=user, files=files.items,
+    return render_template('user.html', title='Profile', user=user, files=files.items, files2=files2.items,
                            next_url=next_url, prev_url=prev_url)
 
 @app.route('/addFile',methods=['GET', 'POST'])
@@ -175,22 +185,34 @@ def saveFile():
 @app.route('/versions',methods=['GET', 'POST'])
 @login_required
 def versions():
-    files = Files.query.filter_by(private=1).order_by(Files.timestamp.desc())
+    _id = request.form['id']
+    file2 = Files.query.filter_by(id=_id)
+    user = User.query.filter_by(username=current_user).first_or_404()
+    files2 = Files.query.filter_by(user_id=user.id).filter_by(title=file2.title).order_by(Files.timestamp.desc())
+    #return render_template('user.html', title='Profile', user=user, files=files.items,
+                         #  next_url=next_url, prev_url=prev_url)
     return jsonify(json_list=[i.serialize for i in files])
-'''
+
 @app.route('/overwriteFile',methods=['GET', 'POST'])
 @login_required
 def overwriteFile():
     _id = request.form['id']
-    _version = request.form['versNo']
-    newVersion = int(_version) + 1
-    print(newVersion, file=sys.stderr)
-    file = Files(title=request.form['title'], body=request.form['code'], 
-        private=request.form['isPrivate'],version=newVersion, author=current_user)
-    db.session.add(file)
-    db.session.commit()
-    flash('File edited')    
-    return render_template('index.html', title='Home')'''
+    file = Files.query.filter_by(id=_id)
+    exists = None
+    for data in file:
+        newV=data.version*10
+        newFile = Files(title=data.title, data=data.body, 
+        private=1,version=newV, author=current_user)
+        db.session.add(newFile)
+        db.session.commit()
+        
+        exists = db.session.query(Files.title).filter_by(title=newFile.title).filter_by(author=current_user).scalar()
+        #print(exists, file=sys.stderr) 
+    if exists is not None:   
+        flash('File Overwrite')      
+        return jsonify({'status':'OK'})
+    else:
+        return jsonify({'status':'An Error occured'})
 
 @app.route('/search')
 @login_required

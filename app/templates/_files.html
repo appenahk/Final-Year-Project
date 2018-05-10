@@ -6,7 +6,7 @@
             </td>
             <td>
                 <a data-id={{file.id}} onclick="View(this)" >
-                   {{ file.title }}     {{ file.version }} 
+                   File: {{ file.title }}   Version Number: {{ file.version }}   Date: {{ file.timestamp }}
                 </a>
                 {% if current_user.username==current_user.username %}
                     <div class="pull-right action-buttons">
